@@ -11,14 +11,17 @@ router.post('/create', orderController.createOrder);
 router.get('/my-orders', orderController.getMyOrders);
 
 // --- Admin Routes ---
-router.get('/all', restrictTo('admin'), orderController.getAllOrders);
+router.get('/all', restrictTo('manager', 'admin'), orderController.getAllOrders);
 router.get('/stats', restrictTo('admin'), orderController.getAdminStats);
+router.get('/advanced-stats', restrictTo('admin'), orderController.getAdvancedStats);
 
 // --- Manager Routes ---
 router.put('/assign', restrictTo('manager', 'admin'), orderController.assignOrder);
 
 // --- Delivery Routes ---
 router.get('/tasks', restrictTo('delivery'), orderController.getDeliveryTasks);
+router.get('/unassigned', restrictTo('delivery'), orderController.getUnassignedOrders);
+router.put('/:id/claim', restrictTo('delivery'), orderController.claimOrder);
 
 // --- General Status Update ---
 router.put('/:id/status', restrictTo('manager', 'delivery', 'admin'), orderController.updateOrderStatus);

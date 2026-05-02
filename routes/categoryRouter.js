@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const verifyManager = require("../middleware/Role");
+const { protect, restrictTo } = require("../middleware/authMiddleware");
 const {
   createCategory,
   getCategories,
@@ -9,10 +9,16 @@ const {
   deleteCategory,
 } = require("../controllers/categoryController");
 
-router.post("/",verifyManager, createCategory);
+// ✅ PUBLIC
 router.get("/", getCategories);
 router.get("/:id", getCategoryById);
-router.put("/:id",verifyManager, updateCategory);
-router.delete("/:id",verifyManager, deleteCategory);
+
+// ✅ PROTECTED (Manager/Admin Only)
+router.use(protect);
+router.use(restrictTo('manager', 'admin'));
+
+router.post("/", createCategory);
+router.put("/:id", updateCategory);
+router.delete("/:id", deleteCategory);
 
 module.exports = router;

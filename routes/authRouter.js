@@ -15,6 +15,6 @@ router.get("/users", protect, restrictTo('admin'), authController.getAllUsers);
 router.put("/update-role", protect, restrictTo('admin'), authController.updateUserRole);
 
 // --- Helper for Managers ---
-router.get("/delivery-partners", protect, restrictTo('manager', 'admin'), authController.getDeliveryPartners);
+router.get("/partners", protect, restrictTo('manager', 'admin'), authController.getDeliveryPartners);
 
 module.exports = router;

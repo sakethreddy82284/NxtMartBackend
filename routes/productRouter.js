@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const verifyManager = require("../middleware/Role");
+const { protect, restrictTo } = require("../middleware/authMiddleware");
 
 const {
   createProduct,
@@ -11,19 +11,17 @@ const {
   deleteProduct
 } = require("../controllers/productController");
 
-// ✅ ALL ROUTES
-
-router.post("/",verifyManager, createProduct);
+// ✅ PUBLIC ROUTES
 router.get("/", getProducts);
-
-// 🔥 IMPORTANT (you are using this in frontend)
 router.get("/category/:categoryId", getProductsByCategory);
-
 router.get("/single/:id", getSingleProduct);
 
-router.put("/:id",verifyManager, updateProduct);
+// ✅ PROTECTED ROUTES (Manager/Admin Only)
+router.use(protect);
+router.use(restrictTo('manager', 'admin'));
 
-// 🔥 DELETE
-router.delete("/:id",verifyManager, deleteProduct);
+router.post("/", createProduct);
+router.put("/:id", updateProduct);
+router.delete("/:id", deleteProduct);
 
 module.exports = router;

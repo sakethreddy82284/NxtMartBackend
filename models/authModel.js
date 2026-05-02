@@ -50,15 +50,21 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     phone: {
-    type: String,
-    required: [true, "Phone number is required"],
-    validate: {
-      validator: function (v) {
-        return /^[6-9]\d{9}$/.test(v); // Indian format
-      },
-      message: "Enter a valid 10-digit phone number"
+      type: String,
+      required: [true, "Phone number is required"],
+      validate: {
+        validator: function (v) {
+          return /^[6-9]\d{9}$/.test(v); // Indian format
+        },
+        message: "Enter a valid 10-digit phone number"
+      }
+    },
+    address: {
+      type: String,
+      trim: true,
+      maxlength: [200, "Address cannot exceed 200 characters"],
+      default: ""
     }
-  }
   },
   {
     timestamps: true, 

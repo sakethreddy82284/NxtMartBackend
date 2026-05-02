@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const orderSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Users',
     required: true
   },
   items: [
@@ -35,7 +35,7 @@ const orderSchema = new mongoose.Schema({
   },
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Users',
     default: null
   },
   address: {
@@ -45,6 +45,10 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: {
     type: String,
     default: "COD"
+  },
+  deliveredAt: {
+    type: Date,
+    default: null
   },
   createdAt: {
     type: Date,
