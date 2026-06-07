@@ -1,7 +1,7 @@
 const Category = require("../models/CategoryModel");
 
 
-// ✅ Create Category
+// Create category
 exports.createCategory = async (req, res) => {
   try {
     const { name, icon } = req.body;
@@ -38,7 +38,7 @@ exports.createCategory = async (req, res) => {
 
 
 
-// ✅ Get All Categories
+// Get all categories
 exports.getCategories = async (req, res) => {
   try {
     const categories = await Category.find().sort({ createdAt: -1 });
@@ -58,7 +58,7 @@ exports.getCategories = async (req, res) => {
 
 
 
-// ✅ Get Single Category
+// Get single category
 exports.getCategoryById = async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
@@ -84,7 +84,7 @@ exports.getCategoryById = async (req, res) => {
 
 
 
-// ✅ Update Category
+// Update category
 exports.updateCategory = async (req, res) => {
   try {
     const { name, icon } = req.body;
@@ -116,7 +116,7 @@ exports.updateCategory = async (req, res) => {
 
 
 
-// ✅ Delete Category
+// Delete category
 exports.deleteCategory = async (req, res) => {
   try {
     const category = await Category.findByIdAndDelete(req.params.id);

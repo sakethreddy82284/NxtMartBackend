@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema(
   {
@@ -45,9 +45,28 @@ const userSchema = new mongoose.Schema(
       default: "customer",
     },
 
+    walletBalance: {
+      type: Number,
+      default: 0,
+    },
+
+    transactionHistory: [
+      {
+        amount: Number,
+        type: { type: String, enum: ["credit", "debit"] },
+        description: String,
+        date: { type: Date, default: Date.now },
+      },
+    ],
+
     isVerified: {
       type: Boolean,
       default: false,
+    },
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
     },
     phone: {
       type: String,
@@ -71,6 +90,19 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// 🔒 Pre-save hook to hash password
+userSchema.pre('save', async function() {
+  if (!this.isModified('password')) return;
+  
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+// 🔓 Method to compare passwords
+userSchema.methods.comparePassword = async function(enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 
-module.exports = mongoose.model("Users",userSchema)
+
+module.exports = mongoose.model("User", userSchema);

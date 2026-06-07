@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const orderSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Users',
+    ref: 'User',
     required: true
   },
   items: [
@@ -35,7 +35,7 @@ const orderSchema = new mongoose.Schema({
   },
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Users',
+    ref: 'User',
     default: null
   },
   address: {
@@ -45,6 +45,11 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: {
     type: String,
     default: "COD"
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'paid', 'failed'],
+    default: 'pending'
   },
   deliveredAt: {
     type: Date,

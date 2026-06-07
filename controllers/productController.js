@@ -2,7 +2,7 @@
 const Product = require("../models/productModel");
 const mongoose = require("mongoose");
 
-// 🔥 Create Product (Admin)
+// Create Product (Admin)
 exports.createProduct = async (req, res) => {
   try {
     const { name, price, category, stock, image, description } = req.body;
@@ -48,7 +48,7 @@ exports.createProduct = async (req, res) => {
 
 
 
-// 🔥 Get All Products (with filters, search, pagination)
+// Get All Products (with filters, search, pagination)
 exports.getProducts = async (req, res) => {
   try {
     let { page = 1, limit = 10, search, category, sort } = req.query;
@@ -100,7 +100,7 @@ exports.getProducts = async (req, res) => {
 
 
 
-// 🔥 Get Products by Category
+// Get Products by Category
 exports.getProductsByCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
@@ -131,7 +131,7 @@ exports.getProductsByCategory = async (req, res) => {
 
 
 
-// 🔥 Get Single Product
+// Get Single Product
 exports.getSingleProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -167,7 +167,7 @@ exports.getSingleProduct = async (req, res) => {
 
 
 
-// 🔥 Update Product
+// Update Product
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -200,7 +200,7 @@ exports.updateProduct = async (req, res) => {
 
 
 
-// 🔥 Delete Product
+// Delete Product
 exports.deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;

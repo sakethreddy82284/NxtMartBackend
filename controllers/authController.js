@@ -2,7 +2,7 @@ const User = require('../models/authModel');
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
-// 🔐 Generate JWT
+// Generate JWT
 const generateToken = (user) => {
   return jwt.sign(
     {
@@ -15,7 +15,7 @@ const generateToken = (user) => {
   );
 };
 
-// ================= SIGNUP =================
+// Sign up
 const signup = async (req, res) => {
   try {
     const { name, email, password, role, phone } = req.body;
@@ -37,14 +37,13 @@ const signup = async (req, res) => {
       });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Password will be hashed by pre-save hook in authModel
 
     // Create user
     const user = await User.create({
       name,
       email,
-      password: hashedPassword,
+      password, // Plain text here, hashed in pre-save hook
       phone,
       role: role || "customer",
     });
@@ -52,10 +51,10 @@ const signup = async (req, res) => {
     // Generate token
     const token = generateToken(user);
 
-    // Set cookie 🍪
+    // Set cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // 👉 set true in production (HTTPS)
+      secure: false, // set true in production (HTTPS)
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -74,6 +73,17 @@ const signup = async (req, res) => {
 
   } catch (err) {
     console.error("Signup error:", err);
+    
+    // Handle Mongoose Validation Errors
+    if (err.name === 'ValidationError') {
+      const messages = Object.values(err.errors).map(val => val.message);
+      return res.status(400).json({
+        success: false,
+        message: messages[0], // Return the first validation error message
+        errors: err.errors
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: "Something went wrong",
@@ -81,7 +91,7 @@ const signup = async (req, res) => {
   }
 };
 
-// ================= SIGNIN =================
+// Sign in
 const signin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -104,7 +114,7 @@ const signin = async (req, res) => {
     }
 
     // Compare password
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -115,7 +125,7 @@ const signin = async (req, res) => {
     // Generate token
     const token = generateToken(user);
 
-    // Set cookie 🍪
+    // Set cookie
     res.cookie("token", token, {
       httpOnly: true,
       secure: false,
@@ -144,7 +154,7 @@ const signin = async (req, res) => {
   }
 };
 
-// ================= GET CURRENT USER =================
+// Get current user
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -170,7 +180,7 @@ const getMe = async (req, res) => {
   }
 };
 
-// ================= UPDATE PROFILE =================
+// Update profile
 const updateProfile = async (req, res) => {
   try {
     const { name, email, phone, address } = req.body;
@@ -205,7 +215,7 @@ const updateProfile = async (req, res) => {
   }
 };
 
-// ================= LOGOUT =================
+// Log out
 const logout = (req, res) => {
   res.clearCookie("token");
   res.status(200).json({
@@ -214,7 +224,7 @@ const logout = (req, res) => {
   });
 };
 
-// ================= ADMIN: GET ALL USERS =================
+// Admin: Get all users
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select("-password").sort({ createdAt: -1 });
@@ -224,7 +234,7 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-// ================= ADMIN: UPDATE USER ROLE =================
+// Admin: Update user role
 const updateUserRole = async (req, res) => {
   try {
     const { userId, role } = req.body;
@@ -235,7 +245,7 @@ const updateUserRole = async (req, res) => {
   }
 };
 
-// ================= GENERAL: GET DELIVERY PARTNERS =================
+// Get delivery partners
 const getDeliveryPartners = async (req, res) => {
   try {
     const partners = await User.find({ role: 'delivery' }).select("name email phone");

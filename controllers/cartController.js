@@ -1,7 +1,7 @@
 const Cart = require("../models/cartModel.js");
 const Product = require("../models/productModel.js");
 
-// ➤ GET CART
+// Get cart
 const getCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({ userId: req.user.id }).populate(
@@ -18,7 +18,7 @@ const getCart = async (req, res) => {
   }
 };
 
-// ➤ ADD TO CART
+// Add to cart
 const addToCart = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
@@ -52,7 +52,7 @@ const addToCart = async (req, res) => {
       });
     }
 
-    // ➤ Recalculate total
+    // Recalculate total
     cart.totalAmount = cart.items.reduce(
       (total, item) => total + item.price * item.quantity,
       0
@@ -66,7 +66,7 @@ const addToCart = async (req, res) => {
   }
 };
 
-// ➤ UPDATE QUANTITY
+// Update quantity
 const updateCartItem = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
@@ -92,7 +92,7 @@ const updateCartItem = async (req, res) => {
   }
 };
 
-// ➤ REMOVE ITEM
+// Remove item
 const removeFromCart = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -117,7 +117,7 @@ const removeFromCart = async (req, res) => {
 };
 
 
-// ➤ CLEAR CART
+// Clear cart
 const clearCart = async (req, res) => {
   try {
     await Cart.findOneAndDelete({ userId: req.user.id });

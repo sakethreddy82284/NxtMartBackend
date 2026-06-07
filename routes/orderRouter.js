@@ -19,9 +19,9 @@ router.get('/advanced-stats', restrictTo('admin'), orderController.getAdvancedSt
 router.put('/assign', restrictTo('manager', 'admin'), orderController.assignOrder);
 
 // --- Delivery Routes ---
-router.get('/tasks', restrictTo('delivery'), orderController.getDeliveryTasks);
-router.get('/unassigned', restrictTo('delivery'), orderController.getUnassignedOrders);
-router.put('/:id/claim', restrictTo('delivery'), orderController.claimOrder);
+router.get('/tasks', restrictTo('delivery', 'manager', 'admin'), orderController.getDeliveryTasks);
+router.get('/unassigned', restrictTo('delivery', 'manager', 'admin'), orderController.getUnassignedOrders);
+router.put('/:id/claim', restrictTo('delivery', 'manager', 'admin'), orderController.claimOrder);
 
 // --- General Status Update ---
 router.put('/:id/status', restrictTo('manager', 'delivery', 'admin'), orderController.updateOrderStatus);

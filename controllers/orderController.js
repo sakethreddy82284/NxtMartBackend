@@ -46,15 +46,30 @@ exports.createOrder = async (req, res) => {
       await product.save();
     }
 
-    // --- AUTO-ASSIGNMENT LOGIC ---
-    // Find an available delivery partner (for demo, just pick the first one)
-    const partner = await User.findOne({ role: 'delivery' });
+    // --- OPEN POOL LOGIC (No Auto-Assignment) ---
+    // Orders start as 'pending' and unassigned so they appear in the "Available Feed"
     let assignedTo = null;
     let status = 'pending';
 
-    if (partner) {
-      assignedTo = partner._id;
-      status = 'confirmed'; // Auto-confirm if partner assigned
+    // --- PAYMENT HANDLING ---
+    const { paymentMethod = 'COD' } = req.body;
+    let paymentStatus = 'pending';
+
+    if (paymentMethod === 'wallet') {
+      const user = await User.findById(userId);
+      if (user.walletBalance < totalPayable) {
+        return res.status(400).json({ message: "Insufficient wallet balance" });
+      }
+      user.walletBalance -= totalPayable;
+      user.transactionHistory.push({
+        amount: totalPayable,
+        type: 'debit',
+        description: `Paid for Order #${Date.now().toString().slice(-6)}`
+      });
+      await user.save();
+      paymentStatus = 'paid';
+    } else if (paymentMethod === 'online') {
+      paymentStatus = 'paid'; // Simulated success
     }
 
     // 4. Create the Order
@@ -68,7 +83,9 @@ exports.createOrder = async (req, res) => {
         totalPayable
       },
       status,
-      assignedTo
+      assignedTo,
+      paymentMethod,
+      paymentStatus
     });
 
     await newOrder.save();
@@ -78,14 +95,17 @@ exports.createOrder = async (req, res) => {
     await cart.save();
 
     res.status(201).json({ 
-      message: partner ? "Order placed & assigned to delivery!" : "Order placed successfully", 
+      message: paymentMethod === 'wallet' ? "Order placed using Wallet!" : "Order placed successfully", 
       orderId: newOrder._id,
       order: newOrder
     });
 
   } catch (err) {
     console.error("Order creation error:", err);
-    res.status(500).json({ message: "Internal server error" });
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ message: Object.values(err.errors)[0].message });
+    }
+    res.status(500).json({ message: err.message || "Internal server error" });
   }
 };
 
@@ -99,7 +119,7 @@ exports.getMyOrders = async (req, res) => {
   }
 };
 
-// 🔥 [ADMIN] Get all orders across platform
+// Admin: Get all orders across platform
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
@@ -112,7 +132,7 @@ exports.getAllOrders = async (req, res) => {
   }
 };
 
-// 🔥 [MANAGER] Assign order to delivery partner
+// Manager: Assign order to delivery partner
 exports.assignOrder = async (req, res) => {
   try {
     const { orderId, partnerId } = req.body;
@@ -127,7 +147,7 @@ exports.assignOrder = async (req, res) => {
   }
 };
 
-// 🔥 [GENERAL] Update status
+// Update status
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -148,7 +168,7 @@ exports.updateOrderStatus = async (req, res) => {
   }
 };
 
-// 🔥 [DELIVERY] Get my tasks
+// Delivery: Get my tasks
 exports.getDeliveryTasks = async (req, res) => {
   try {
     const orders = await Order.find({ 
@@ -161,7 +181,7 @@ exports.getDeliveryTasks = async (req, res) => {
   }
 };
 
-// 🔥 [DELIVERY] Get all unassigned pending orders (Open Pool)
+// Delivery: Get all unassigned pending orders (Open Pool)
 exports.getUnassignedOrders = async (req, res) => {
   try {
     const orders = await Order.find({ 
@@ -174,7 +194,7 @@ exports.getUnassignedOrders = async (req, res) => {
   }
 };
 
-// 🔥 [DELIVERY] Claim an unassigned order
+// Delivery: Claim an unassigned order
 exports.claimOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
@@ -196,7 +216,7 @@ exports.claimOrder = async (req, res) => {
   }
 };
 
-// 🔥 [ADMIN] Get global stats
+// Admin: Get global stats
 exports.getAdminStats = async (req, res) => {
   try {
     const totalOrders = await Order.countDocuments();
@@ -219,7 +239,7 @@ exports.getAdminStats = async (req, res) => {
   }
 };
 
-// 🔥 [ADMIN] Get advanced BI stats
+// Admin: Get advanced BI stats
 exports.getAdvancedStats = async (req, res) => {
   try {
     // 1. Revenue Growth (Last 30 days)
