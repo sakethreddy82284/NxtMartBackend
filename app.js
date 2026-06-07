@@ -24,9 +24,16 @@ const allowedOrigins = [
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    const isAllowed = allowedOrigins.includes(origin) || 
-                      /^http:\/\/localhost:\d+$/.test(origin) || 
-                      /^http:\/\/127\.0\.0\.1:\d+$/.test(origin);
+    
+    // Check if the origin matches local development or common deployment hosts
+    const isAllowed = /^http:\/\/localhost:\d+$/.test(origin) || 
+                      /^http:\/\/127\.0\.0\.1:\d+$/.test(origin) ||
+                      origin.endsWith(".vercel.app") ||
+                      origin.endsWith(".onrender.com") ||
+                      origin.endsWith(".netlify.app") ||
+                      origin.includes("nxtmart") ||
+                      origin.includes("nxt-mart");
+                      
     if (isAllowed) {
       callback(null, true);
     } else {
