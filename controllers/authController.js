@@ -54,8 +54,8 @@ const signup = async (req, res) => {
     // Set cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // set true in production (HTTPS)
-      sameSite: "lax",
+      secure: true, // Must be true for sameSite: 'none'
+      sameSite: "none", // Allows cross-origin sharing
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -128,8 +128,8 @@ const signin = async (req, res) => {
     // Set cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: true, // Must be true for sameSite: 'none'
+      sameSite: "none", // Allows cross-origin sharing
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -217,7 +217,11 @@ const updateProfile = async (req, res) => {
 
 // Log out
 const logout = (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none"
+  });
   res.status(200).json({
     success: true,
     message: "Logged out successfully",
