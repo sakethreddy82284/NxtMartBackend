@@ -11,8 +11,28 @@ const{PORT,DB_USER,DB_PASSWORD}=process.env
 
 const DB_URL=`mongodb+srv://${DB_USER}:${DB_PASSWORD}@cluster0.phmloij.mongodb.net/scholarspace_db`
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:3000",
+  "http://localhost:5174",
+  "http://127.0.0.1:5174",
+  "https://nxt-mart-frontend.vercel.app",
+  "https://nxtmartfrontend.vercel.app"
+];
+
 app.use(cors({
-  origin: ["http://localhost:5173", "https://nxt-mart-frontend.vercel.app"], 
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    const isAllowed = allowedOrigins.includes(origin) || 
+                      /^http:\/\/localhost:\d+$/.test(origin) || 
+                      /^http:\/\/127\.0\.0\.1:\d+$/.test(origin);
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(cookieParser());
