@@ -83,7 +83,9 @@ const userSchema = new mongoose.Schema(
       trim: true,
       maxlength: [200, "Address cannot exceed 200 characters"],
       default: ""
-    }
+    },
+    passwordResetToken: String,
+    passwordResetExpires: Date,
   },
   {
     timestamps: true, 

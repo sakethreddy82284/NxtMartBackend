@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const User = require('../models/authModel');
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -13,6 +14,12 @@ const generateToken = (user) => {
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
   );
+};
+
+const createPasswordResetToken = () => {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+  return { resetToken, hashedToken };
 };
 
 // Sign up
@@ -228,6 +235,81 @@ const logout = (req, res) => {
   });
 };
 
+// Forgot password
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "No account found with this email" });
+    }
+
+    const { resetToken, hashedToken } = createPasswordResetToken();
+    user.passwordResetToken = hashedToken;
+    user.passwordResetExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+    await user.save({ validateBeforeSave: false });
+
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const resetUrl = `${clientUrl}/auth/reset?token=${resetToken}`;
+    console.log(`Password reset URL for ${email}: ${resetUrl}`);
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset link created. Use the token to reset your password.",
+      resetToken,
+      resetUrl,
+    });
+  } catch (err) {
+    console.error("ForgotPassword error:", err);
+    res.status(500).json({ success: false, message: "Something went wrong" });
+  }
+};
+
+// Reset password
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password, confirmPassword } = req.body;
+    if (!token || !password || !confirmPassword) {
+      return res.status(400).json({ success: false, message: "Token, password and confirm password are required" });
+    }
+    if (password !== confirmPassword) {
+      return res.status(400).json({ success: false, message: "Passwords do not match" });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Invalid or expired reset token" });
+    }
+
+    user.password = password;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    const jwtToken = generateToken(user);
+    res.cookie("token", jwtToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({ success: true, message: "Password reset successful", user: { id: user._id, email: user.email, name: user.name, role: user.role } });
+  } catch (err) {
+    console.error("ResetPassword error:", err);
+    res.status(500).json({ success: false, message: "Something went wrong" });
+  }
+};
+
 // Admin: Get all users
 const getAllUsers = async (req, res) => {
   try {
@@ -263,6 +345,8 @@ module.exports = {
   signup,
   signin,
   logout,
+  forgotPassword,
+  resetPassword,
   getMe,
   updateProfile,
   getAllUsers,

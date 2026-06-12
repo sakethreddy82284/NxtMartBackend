@@ -12,8 +12,8 @@ router.get('/my-orders', orderController.getMyOrders);
 
 // --- Admin Routes ---
 router.get('/all', restrictTo('manager', 'admin'), orderController.getAllOrders);
-router.get('/stats', restrictTo('admin'), orderController.getAdminStats);
-router.get('/advanced-stats', restrictTo('admin'), orderController.getAdvancedStats);
+router.get('/stats', restrictTo('manager', 'admin'), orderController.getAdminStats);
+router.get('/advanced-stats', restrictTo('manager', 'admin'), orderController.getAdvancedStats);
 
 // --- Manager Routes ---
 router.put('/assign', restrictTo('manager', 'admin'), orderController.assignOrder);

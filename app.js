@@ -59,7 +59,7 @@ mongoose.connect(DB_URL)
   .catch((err) => console.log("DB ERROR:", err));
 
 if (process.env.NODE_ENV !== 'production' || process.env.RENDER) {
-  app.listen(PORT || 2000, () => {
+  app.listen(PORT || 2000, () => {  
     console.log(`app running at ${PORT || 2000}`);
   });
 }
