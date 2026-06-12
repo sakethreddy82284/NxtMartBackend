@@ -54,6 +54,11 @@ app.use("/products", require("./routes/productRouter"));
 app.use("/cart", require("./routes/cartRouter"));
 app.use("/orders", require("./routes/orderRouter"));
 
+// Root route for health check
+app.get("/", (req, res) => {
+  res.status(200).send("NxtMart Backend is running!");
+});
+
 mongoose.connect(DB_URL)
   .then(() => console.log("database connected successfully"))
   .catch((err) => console.log("DB ERROR:", err));
